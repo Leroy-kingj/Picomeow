@@ -1,10 +1,11 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
+using Picomeow.Config;
 
 namespace Picomeow.Nonogram
 {
-    // 数织棋盘：在指定父级（应为全屏 Fill 面板）内以 1080x1920 参考坐标构建
+    // 数织棋盘：在指定父级（拼图屏 Holder）内以 1080x1920 参考坐标构建，严格匹配原型 10 拼图视觉稿
     public class BoardController
     {
         public PictureData pic;
@@ -17,21 +18,20 @@ namespace Picomeow.Nonogram
         int mistakes;
         int maxMistakes;
         bool finished;
+        bool markMode; // false=填色, true=标记X
 
         Transform parent;
-        Text mistakeText;
+        Text mistakeText, chapterText, levelText;
+        Button modeBtn;
         System.Action<bool> onComplete;
 
-        // 布局
-        const float boardLeft = 30, boardRight = 1050;
-        const float boardBottom = 120, boardTop = 1540;
-        const float rowClueW = 110, colClueH = 110;
-        const float headerY = 1560;
+        // 布局（1080x1920，左下原点）
+        const float boardLeft = 40, boardRight = 1040;
+        const float boardBottom = 260, boardTop = 1520;
+        const float rowClueW = 140, colClueH = 140;
 
         float cell;
         float gridX, gridY;
-
-        // 每个格子的可视组件
         List<Image> cellImages = new List<Image>();
         List<Text> cellX = new List<Text>();
         List<Button> cellButtons = new List<Button>();
@@ -48,7 +48,7 @@ namespace Picomeow.Nonogram
 
             state = new Cell[n, n];
             locked = new bool[n, n];
-            mistakes = 0; maxMistakes = lvl.maxMistakes; finished = false;
+            mistakes = 0; maxMistakes = lvl.maxMistakes; finished = false; markMode = false;
 
             float gridW = (boardRight - boardLeft) - rowClueW;
             float gridH = (boardTop - boardBottom) - colClueH;
@@ -57,11 +57,11 @@ namespace Picomeow.Nonogram
             gridY = boardBottom + (gridH - cell * n) / 2f;
 
             BuildHeader();
+            BuildFooter();
             BuildRowClues();
             BuildColClues();
             BuildGrid();
 
-            // 预填提示：锁定若干正确格
             int toFill = Mathf.Min(lvl.initialMarks, CountCorrect());
             int filled = 0;
             for (int r = 0; r < n && filled < toFill; r++)
@@ -73,29 +73,50 @@ namespace Picomeow.Nonogram
 
         int CountCorrect() { int k = 0; for (int r = 0; r < n; r++) for (int c = 0; c < n; c++) k += solution[r, c]; return k; }
 
+        // 顶部条：返回 / 体力(心) / 章节·关卡 / 猫咪 / 设置
         void BuildHeader()
         {
-            // 返回按钮（左上）
-            var back = UIHelpers.EL(parent, "BackBtn", 30, headerY, 150, 110);
-            var bb = UIHelpers.AddButton(back, UIHelpers.Sage, "Back", 40);
-            bb.onClick.AddListener(() => { if (!finished) onComplete(false); });
+            // 返回（左上）
+            UIHelpers.CloseButton(parent, 40, 1720, 90, () => { if (!finished) onComplete(false); });
+            // 体力（3 颗心，左）
+            for (int i = 0; i < 3; i++)
+            {
+                var h = UIHelpers.EL(parent, "Life_" + i, 160 + i * 70, 1720, 56, 56);
+                UIHelpers.AddImage(h, UIHelpers.LoadSprite("ui_circle"), UIHelpers.Red).preserveAspect = true;
+            }
+            // 章节·关卡（中）
+            var cl = UIHelpers.EL(parent, "ChapterLevel", 360, 1700, 360, 120);
+            chapterText = UIHelpers.AddLabel(cl, "Chapter " + pic.chapter, 36, UIHelpers.Ink);
+            levelText = UIHelpers.AddLabel(UIHelpers.EL(cl, "Lv", 0, 0, 360, 60), "Level " + lvl.id, 40, UIHelpers.Ink);
+            // 猫咪插画（右）
+            var cat = UIHelpers.EL(parent, "CatHead", 800, 1680, 160, 160);
+            UIHelpers.AddImage(cat, UIHelpers.LoadSprite("momo_cat"), Color.white).preserveAspect = true;
+            // 设置（右上）
+            var set = UIHelpers.EL(parent, "SetBtn", 980, 1720, 90, 90);
+            UIHelpers.AddButton(set, UIHelpers.Sage, "S", 50);
+        }
 
-            // 错误计数（中上）
-            var mt = UIHelpers.EL(parent, "MistakeText", 200, headerY, 500, 110);
-            mistakeText = UIHelpers.AddLabel(mt, "Mistakes: 0/" + maxMistakes, 42, UIHelpers.Ink);
-
-            // 提示道具（右上）：铲子 / 灯泡 / 零食
-            var hints = GameConfig.Data != null ? GameConfig.Data.hintItems : null;
+        // 底部栏：模式切换 + 3 个道具
+        void BuildFooter()
+        {
+            var foot = UIHelpers.EL(parent, "Footer", 0, 20, 1080, 220);
+            UIHelpers.AddImage(foot, null, UIHelpers.FooterBg);
+            // 模式切换
+            var m = UIHelpers.EL(foot, "Mode", 40, 60, 360, 110);
+            modeBtn = UIHelpers.AddButton(m, UIHelpers.Teal, "Fill", 40);
+            modeBtn.onClick.AddListener(() => { markMode = !markMode; modeBtn.GetComponentInChildren<Text>().text = markMode ? "Mark X" : "Fill"; });
+            // 道具
+            var hints = (GameConfig.Data != null) ? GameConfig.Data.hintItems : null;
             if (hints != null)
             {
-                float hx = boardRight - 150;
-                for (int i = hints.Length - 1; i >= 0; i--)
+                float hx = 460;
+                for (int i = 0; i < hints.Length && i < 3; i++)
                 {
-                    var ht = UIHelpers.EL(parent, "Hint_" + hints[i].id, hx, headerY, 140, 110);
-                    var hb = UIHelpers.AddButton(ht, UIHelpers.WarmYellow, hints[i].name + "\n" + hints[i].cost, 26);
+                    var ht = UIHelpers.EL(foot, "Tool_" + hints[i].id, hx, 55, 180, 120);
+                    var hb = UIHelpers.AddButton(ht, UIHelpers.Paper, hints[i].name + "\n$" + hints[i].cost, 26);
                     string id = hints[i].id; int cost = hints[i].cost;
                     hb.onClick.AddListener(() => UseHint(id, cost));
-                    hx -= 160;
+                    hx += 200;
                 }
             }
         }
@@ -109,7 +130,7 @@ namespace Picomeow.Nonogram
                 for (int i = 0; i < parts.Length; i++) txt += (i > 0 ? " " : "") + parts[i];
                 float y = gridY + (n - 1 - r) * cell;
                 var rt = UIHelpers.EL(parent, "RowClue_" + r, boardLeft, y, rowClueW, cell);
-                UIHelpers.AddLabel(rt, txt, Mathf.Clamp((int)(cell * 0.4f), 18, 40), UIHelpers.Ink, TextAnchor.MiddleRight);
+                UIHelpers.AddLabel(rt, txt, Mathf.Clamp((int)(cell * 0.4f), 16, 40), UIHelpers.Ink, TextAnchor.MiddleRight);
             }
         }
 
@@ -123,16 +144,19 @@ namespace Picomeow.Nonogram
                 float per = bandH / parts.Length;
                 for (int i = 0; i < parts.Length; i++)
                 {
-                    // 顶部第一条线索在上
                     float y = boardTop - colClueH + (parts.Length - 1 - i) * per;
                     var rt = UIHelpers.EL(parent, "ColClue_" + c + "_" + i, x, y, cell, per);
-                    UIHelpers.AddLabel(rt, parts[i], Mathf.Clamp((int)(cell * 0.35f), 16, 36), UIHelpers.Ink, TextAnchor.MiddleCenter);
+                    UIHelpers.AddLabel(rt, parts[i], Mathf.Clamp((int)(cell * 0.34f), 14, 36), UIHelpers.Ink, TextAnchor.MiddleCenter);
                 }
             }
         }
 
         void BuildGrid()
         {
+            // 浅黄面板底
+            var panel = UIHelpers.EL(parent, "BoardPanel", boardLeft + rowClueW - 10, boardBottom - 10, (boardRight - boardLeft) - rowClueW + 20, (boardTop - boardBottom) - colClueH + 20);
+            UIHelpers.AddImage(panel, null, UIHelpers.BoardBg);
+
             cellImages.Clear(); cellX.Clear(); cellButtons.Clear();
             for (int r = 0; r < n; r++)
             {
@@ -150,12 +174,8 @@ namespace Picomeow.Nonogram
                     cb.pressedColor = UIHelpers.Sage; btn.colors = cb;
                     int rr = r, cc = c;
                     btn.onClick.AddListener(() => OnCellClick(rr, cc));
-
-                    // 网格线描边
                     var line = rt.gameObject.AddComponent<Outline>();
-                    line.effectColor = new Color(0.8f, 0.78f, 0.72f);
-                    line.effectDistance = new Vector2(1, 1);
-
+                    line.effectColor = new Color(0.8f, 0.78f, 0.72f); line.effectDistance = new Vector2(1, 1);
                     cellImages.Add(img); cellX.Add(xtxt); cellButtons.Add(btn);
                 }
             }
@@ -173,19 +193,15 @@ namespace Picomeow.Nonogram
         {
             if (finished || locked[r, c]) return;
             Cell cur = state[r, c];
-            Cell next = (Cell)(((int)cur + 1) % 3); // Empty->Filled->Marked->Empty
+            Cell next;
+            if (markMode) next = (cur == Cell.Marked) ? Cell.Empty : Cell.Marked;
+            else next = (cur == Cell.Filled) ? Cell.Marked : Cell.Filled; // 填模式：填->标X->空
 
-            // 错误判定：从非填充变为填充且本应空
             if (next == Cell.Filled && solution[r, c] == 0)
             {
                 mistakes++;
                 if (mistakeText != null) mistakeText.text = "Mistakes: " + mistakes + "/" + maxMistakes;
-                if (mistakes > maxMistakes)
-                {
-                    finished = true;
-                    if (onComplete != null) onComplete(false);
-                    return;
-                }
+                if (mistakes > maxMistakes) { finished = true; onComplete(false); return; }
             }
             state[r, c] = next;
             RefreshCell(r, c);
@@ -196,8 +212,8 @@ namespace Picomeow.Nonogram
         {
             int i = Idx(r, c);
             Cell s = state[r, c];
-            if (s == Cell.Filled) cellImages[i].color = UIHelpers.Ink;
-            else if (s == Cell.Marked) cellImages[i].color = UIHelpers.Sage;
+            if (s == Cell.Filled) cellImages[i].color = UIHelpers.Amber;
+            else if (s == Cell.Marked) cellImages[i].color = UIHelpers.Cream;
             else cellImages[i].color = UIHelpers.Paper;
             cellX[i].text = (s == Cell.Marked) ? "X" : "";
         }
@@ -211,24 +227,17 @@ namespace Picomeow.Nonogram
         {
             for (int r = 0; r < n; r++)
                 for (int c = 0; c < n; c++)
-                {
-                    bool filled = state[r, c] == Cell.Filled;
-                    if (filled != (solution[r, c] == 1)) return;
-                }
+                    if ((state[r, c] == Cell.Filled) != (solution[r, c] == 1)) return;
             finished = true;
             if (onComplete != null) onComplete(true);
         }
 
-        // -------- 提示道具 --------
+        // 提示道具
         void UseHint(string id, int cost)
         {
             if (finished) return;
             var eco = Economy.Instance;
-            if (eco == null || !eco.SpendCoins(cost))
-            {
-                FlashNoCoins();
-                return;
-            }
+            if (eco == null || !eco.SpendCoins(cost)) { return; }
             if (id == "shovel") RevealOneCorrect();
             else if (id == "bulb") FillOneRow();
             else if (id == "treat") Reveal3x3();
@@ -240,8 +249,7 @@ namespace Picomeow.Nonogram
         {
             for (int r = 0; r < n; r++)
                 for (int c = 0; c < n; c++)
-                    if (solution[r, c] == 1 && state[r, c] != Cell.Filled)
-                    { SetCell(r, c, Cell.Filled, true); return; }
+                    if (solution[r, c] == 1 && state[r, c] != Cell.Filled) { SetCell(r, c, Cell.Filled, true); return; }
         }
 
         void FillOneRow()
@@ -249,14 +257,8 @@ namespace Picomeow.Nonogram
             for (int r = 0; r < n; r++)
             {
                 bool need = false;
-                for (int c = 0; c < n; c++)
-                    if (solution[r, c] == 1 && state[r, c] != Cell.Filled) { need = true; break; }
-                if (need)
-                {
-                    for (int c = 0; c < n; c++)
-                        if (solution[r, c] == 1) SetCell(r, c, Cell.Filled, true);
-                    return;
-                }
+                for (int c = 0; c < n; c++) if (solution[r, c] == 1 && state[r, c] != Cell.Filled) { need = true; break; }
+                if (need) { for (int c = 0; c < n; c++) if (solution[r, c] == 1) SetCell(r, c, Cell.Filled, true); return; }
             }
         }
 
@@ -266,11 +268,6 @@ namespace Picomeow.Nonogram
             for (int r = br; r < br + 3; r++)
                 for (int c = bc; c < bc + 3; c++)
                     if (solution[r, c] == 1) SetCell(r, c, Cell.Filled, true);
-        }
-
-        void FlashNoCoins()
-        {
-            // 资源不足时不执行任何操作（可在此接入 Toast）
         }
     }
 

@@ -97,6 +97,20 @@ namespace Picomeow.Config
         public int cost;
     }
 
+    // 猫咪数据：名字严格按品种（英文名），北美市场友好
+    [Serializable]
+    public class CatData
+    {
+        public int id;
+        public string name;        // 按品种命名，如 Calico / Bombay
+        public string breed;       // 品种
+        public string coat;        // 毛色描述
+        public string desc;        // 档案描述
+        public string rel;         // 好感度文案
+        public string secret;      // 秘密文案
+        public bool unlocked;      // 是否已入住（收集）
+    }
+
     [Serializable]
     public class ConfigRoot
     {
@@ -108,6 +122,7 @@ namespace Picomeow.Config
         public OnboardingStep[] onboarding;
         public EconomyData economy;
         public HintItemData[] hintItems;
+        public CatData[] cats;
     }
 
     public static class GameConfig
@@ -134,6 +149,20 @@ namespace Picomeow.Config
             if (Data == null) return null;
             foreach (var d in Data.dialogue) if (d.roomId == roomId) return d;
             return null;
+        }
+
+        // 主角猫（collection 中第一只已入住的猫），用于对话说话者名字
+        public static CatData HeroCat()
+        {
+            if (Data == null || Data.cats == null) return null;
+            foreach (var c in Data.cats) if (c.unlocked) return c;
+            return Data.cats.Length > 0 ? Data.cats[0] : null;
+        }
+
+        public static string HeroName()
+        {
+            var h = HeroCat();
+            return h != null ? h.name : "Cat";
         }
     }
 

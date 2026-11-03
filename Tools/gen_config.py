@@ -230,12 +230,53 @@ ONBOARDING = [
     {"step": 10, "screen": "Main",         "instruction": "That's the basics. Enjoy Picomeow!"},
 ]
 
-ECONOMY = {"energyMax": 20, "energyRegenMinutes": 5, "startEnergy": 20, "startCoins": 50, "startStars": 0}
+ECONOMY = {"energyMax": 20, "energyRegenMinutes": 5, "startEnergy": 20,
+            "startCoins": 50, "startFish": 10, "startFragments": 0, "startStars": 0}
 
 HINT_ITEMS = [
     {"id": "shovel", "name": "Shovel",     "desc": "Reveal one correct cell.", "cost": 10},
     {"id": "bulb",   "name": "Light Bulb", "desc": "Auto-fill an entire row.", "cost": 25},
     {"id": "treat",  "name": "Cat Treat",  "desc": "Mark a 3x3 area correctly.", "cost": 15},
+]
+
+# 猫咪表：名字严格按品种（英文名），北美市场友好。第一只为已入住的主角猫。
+CATS = [
+    {"id": 1,  "name": "Calico",           "breed": "Calico",           "coat": "White with orange & grey patches",
+     "desc": "A cheerful tri-color cat who loves cozy afternoons and a good puzzle.", "rel": "Curious about you",
+     "secret": "Won't admit she's a puzzle genius who solves one a day.", "unlocked": True},
+    {"id": 2,  "name": "Bombay",           "breed": "Bombay",           "coat": "Solid black with copper eyes",
+     "desc": "A sleek black cat who rocks the headphones and loves soundproof naps.", "rel": "Chill and cool",
+     "secret": "Humming a tune only cats can hear.", "unlocked": False},
+    {"id": 3,  "name": "Siamese",          "breed": "Siamese",          "coat": "Cream with dark brown points",
+     "desc": "Vocal and elegant, always has an opinion about the decor.", "rel": "Very talkative",
+     "secret": "Has redecorated the living room three times in secret.", "unlocked": False},
+    {"id": 4,  "name": "Persian",          "breed": "Persian",          "coat": "Long fluffy cream fur",
+     "desc": "A pampered long-hair who insists on the softest rug.", "rel": "Relaxed and royal",
+     "secret": "Naps exactly 18 hours a day, on schedule.", "unlocked": False},
+    {"id": 5,  "name": "Ragdoll",          "breed": "Ragdoll",          "coat": "White & grey, blue eyes",
+     "desc": "Goes limp with joy when picked up. Total sweetheart.", "rel": "Lovingly clingy",
+     "secret": "Collects hair ties and hides them under the sofa.", "unlocked": False},
+    {"id": 6,  "name": "Maine Coon",       "breed": "Maine Coon",       "coat": "Large brown tabby, tufted ears",
+     "desc": "A gentle giant who guards the apartment like a fluffy knight.", "rel": "Protective",
+     "secret": "Believes he owns the building, not the other way around.", "unlocked": False},
+    {"id": 7,  "name": "British Shorthair","breed": "British Shorthair","coat": "Blue-grey plush coat",
+     "desc": "Round-faced and unbothered. The calm center of the home.", "rel": "Mellow",
+     "secret": "Judges your puzzle speed in silence.", "unlocked": False},
+    {"id": 8,  "name": "Scottish Fold",    "breed": "Scottish Fold",    "coat": "Grey with folded ears",
+     "desc": "Tiny folded ears and a big heart. Loves a window seat.", "rel": "Quietly happy",
+     "secret": "Stacks the cushions just so when no one watches.", "unlocked": False},
+    {"id": 9,  "name": "Russian Blue",     "breed": "Russian Blue",     "coat": "Silver-blue short fur",
+     "desc": "Shy but loyal, glows softly in the moonlight.", "rel": "Shy then devoted",
+     "secret": "Leaves little paw prints in the frost on the window.", "unlocked": False},
+    {"id": 10, "name": "Bengal",           "breed": "Bengal",           "coat": "Golden spotted leopard pattern",
+     "desc": "Energetic and wild at heart, loves climbing the shelves.", "rel": "Playful daredevil",
+     "secret": "Knocks one item off a shelf daily. On purpose.", "unlocked": False},
+    {"id": 11, "name": "Sphynx",           "breed": "Sphynx",           "coat": "Hairless, wrinkled, warm",
+     "desc": "Bare-skinned and bold, always seeking a warm lap.", "rel": "Affectionate goofball",
+     "secret": "Steals the warmest spot within seconds of you sitting.", "unlocked": False},
+    {"id": 12, "name": "Norwegian Forest", "breed": "Norwegian Forest", "coat": "Long thick grey & white",
+     "desc": "A rugged forest cat, gentle beneath the wild coat.", "rel": "Steady and kind",
+     "secret": "Brings 'gifts' of leaves indoors for you.", "unlocked": False},
 ]
 
 PALETTES = ["cat_basic", "cat_pastel", "cat_sunset", "cat_mint"]
@@ -286,7 +327,8 @@ def build_config():
         "dialogue": DIALOGUE,
         "onboarding": ONBOARDING,
         "economy": ECONOMY,
-        "hintItems": HINT_ITEMS
+        "hintItems": HINT_ITEMS,
+        "cats": CATS
     }
     return config
 

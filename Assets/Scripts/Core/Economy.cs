@@ -16,7 +16,9 @@ namespace Picomeow.Core
         public int EnergyRegenMinutes { get { return GameConfig.Data != null ? GameConfig.Data.economy.energyRegenMinutes : 5; } }
 
         public int Energy { get { return SaveSystem.data.energy; } }
-        public int Coins { get { return SaveSystem.data.coins; } }
+        public int Coins { get { return SaveSystem.data.coins; } }      // 猫金币 (Cat Coins)
+        public int Fish { get { return SaveSystem.data.fish; } }          // 小鱼干 (Fish Treats)
+        public int Fragments { get { return SaveSystem.data.fragments; } }// 拼图碎片 (Puzzle Fragments)
         public int Stars { get { return SaveSystem.data.stars; } }
 
         void Update()
@@ -75,7 +77,26 @@ namespace Picomeow.Core
             return true;
         }
 
+        public bool SpendFish(int cost)
+        {
+            if (SaveSystem.data.fish < cost) return false;
+            SaveSystem.data.fish -= cost;
+            SaveSystem.Save();
+            onChanged.Invoke();
+            return true;
+        }
+
         public void AddCoins(int c) { SaveSystem.data.coins += c; SaveSystem.Save(); onChanged.Invoke(); }
+        public void AddFish(int c) { SaveSystem.data.fish += c; SaveSystem.Save(); onChanged.Invoke(); }
+        public void AddFragments(int c) { SaveSystem.data.fragments += c; SaveSystem.Save(); onChanged.Invoke(); }
         public void AddStars(int s) { SaveSystem.data.stars += s; SaveSystem.Save(); onChanged.Invoke(); }
+
+        public void AddEnergy(int c)
+        {
+            SaveSystem.data.energy = Mathf.Min(EnergyMax, SaveSystem.data.energy + c);
+            SaveSystem.data.lastRegenTicks = DateTime.UtcNow.Ticks;
+            SaveSystem.Save();
+            onChanged.Invoke();
+        }
     }
 }

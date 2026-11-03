@@ -16,6 +16,27 @@
 
 ---
 
+## 0.5 本次迭代已完成（原型驱动 UI 重建 + 品种命名 + 其余内容）
+
+> 严格对照 `界面原型截图.docx` / `lv1-1 界面交互` 33 张视觉稿重建全部界面，并把猫咪按**真实品种**英文命名（北美友好）。
+
+- [x] **UI 全面对齐交互原型**：加载页 / 主 HUB / 关卡选择 / 关卡详情 / 数织对局 / 结算 / 对话装修 / 图鉴 / 档案 / 任务 / 设置，全部按视觉稿布局与配色（奶油底、墨褐字、橙黄 CTA、青绿按钮、红缎带、黑圆 X）重建。
+- [x] **猫咪按品种命名**：`CatData` 12 只猫（Calico / Bombay / Siamese / Persian / Ragdoll / Maine Coon / British Shorthair / Scottish Fold / Russian Blue / Bengal / Sphynx / Norwegian Forest），主角猫默认 Calico；图鉴、档案、新猫入住、装修对话均使用品种名。
+- [x] **新猫入住两段式**：原型 06 的「揭晓 → 欢迎」流程（Reveal 按钮 → 展示品种猫 → Welcome!）。
+- [x] **其余原型内容补齐**（此前为 coming-soon 占位，现已接真实界面）：
+  - 排行榜（Ranking）：Top10 榜单，玩家行高亮。
+  - 社交（Friends）：好友列表 + 送体力/拜访 + Facebook/Google 连接。
+  - 挑战（Challenge）：每日挑战卡 + 倒计时 + 开始。
+  - 个性装扮（Customize）：猫咪/棋子/头像框/背景 四标签 + 预览 + 九宫格（已装备✓/锁定锁），锁定项可购买弹窗。
+  - 每日签到（Calendar）：月历网格 + 连续登录宝箱进度 + 领取。
+  - 登录 / 保存进度（Login）：Facebook / Google 登录弹窗。
+  - 月度订阅（$2.99，原型 13）/ 去广告（$4.99 终身，原型 12）。
+  - 看广告得猫金币 / 得体力弹窗（原型 23 / 28）。
+  - 月度拼图标签、语言选择、反馈弹窗。
+- [x] 新增 `Economy.AddEnergy`；新增 `UIHelpers.BuildModal` 统一弹窗骨架；清理废弃 `DialogueSystem.cs`（由 `DialoguePlayer.cs` 替代）。
+
+---
+
 ## 1. 内容扩展（P1，建议 2–3 周）
 - [ ] 关卡：把 `Tools/gen_config.py` 的 `CHAPTER_SIZES` 扩到 15 章（尺寸 5–13），目标 300+ 关；用脚本重新生成并热更 `config.json`。
 - [ ] 美术切图：把占位 PNG 替换为**可切片的标准切图**（九宫格/多分辨率 @1x@2x@3x），建立 `SpriteAtlas`。
